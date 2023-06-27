@@ -2,7 +2,7 @@
 <package>
   <name>qlin_camera_control</name>
   <version>0.0.0</version>
-  <description>The qlin_camera_processing package</description>
+  <description>The qlin_ms_camera_processing package</description>
 
   <maintainer email="qlin1806m@gmail.com">qlin1806</maintainer>
   <license>GPLv2</license>

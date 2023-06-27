@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(qlin_camera_processing)
+project(qlin_ms_camera_processing)
 
 
 
@@ -63,7 +63,7 @@ catkin_package(
     sensor_msgs
     std_msgs
     sas_conversions
-  LIBRARIES qlin_camera_processing
+  LIBRARIES qlin_ms_camera_processing
 )
 
 
