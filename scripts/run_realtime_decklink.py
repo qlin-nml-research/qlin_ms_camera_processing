@@ -6,7 +6,7 @@ from decklink.AR_CoppeliaSim_Py.decklink_interface import DeckLinkInterface
 
 dll_path = "E:/Github/qlin2023/Moonshot/catkin_ws/src/qlin_camera_processing/scripts/decklink" \
            "/DecklinkInterface/x64/Release/DecklinkInterface.dll"
-def realtime_main_decklink(inference_param, deck_link_index, display_mode_index, show_img, debug):
+def realtime_main_decklink(inference_param, deck_link_index, display_mode_index, show_img, debug, **kwargs):
     inference_h = InferencerDROI(**inference_param)
 
     cap = DeckLinkInterface(dll_location=dll_path)
@@ -50,7 +50,6 @@ if __name__ == '__main__':
             "DEVICE": "cuda",
             "postive_detect_threshold": 255.0 / 2
         },
-        "show_img": show_img,
     }
 
     realtime_main_decklink(

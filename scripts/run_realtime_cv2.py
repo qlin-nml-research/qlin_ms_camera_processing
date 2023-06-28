@@ -4,7 +4,7 @@ import os
 from inference_step.inference_realtime_dynamicROI import InferencerDROI
 
 
-def realtime_main_cv2(inference_param, device_id, show_img, debug):
+def realtime_main_cv2(inference_param, device_id, show_img, debug, **kwargs):
     inference_h = InferencerDROI(**inference_param)
 
     cap = cv2.VideoCapture(device_id)
@@ -38,8 +38,8 @@ if __name__ == '__main__':
     _show_img = True
     _debug = False
 
-    # _device_id = 4  # Mooonshot Master PC
-    _device_id = vid_path  # file
+    _device_id = 4  # Mooonshot Master PC
+    # _device_id = vid_path  # file
 
     _inference_param = {
         "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
