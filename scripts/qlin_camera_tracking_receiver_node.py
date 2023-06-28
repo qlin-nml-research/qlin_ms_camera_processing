@@ -6,7 +6,7 @@ from qlin_ms_camera_processing import QlinTrackerProvider
 from PyQt5.QtCore import QByteArray, qChecksum, QDataStream, QIODevice
 from PyQt5.QtNetwork import QUdpSocket, QHostAddress
 
-incoming_udp_format = [('x_pos', 'float', 1), ('y_pos', 'float', 1), ('has_lock', 'bool', 1)]
+incoming_udp_format = [('x_pos', 'float', 1), ('y_pos', 'float', 1), ('has_lock', 'int', 1)]
 
 
 def qlin_tracker_recevier_main(_name, _config):
@@ -52,10 +52,10 @@ def qlin_tracker_recevier_main(_name, _config):
 
                 if crc_from_sender != crc16:
                     rospy.loginfo("[" + rospy.get_name() + "]:::CRC Checksum Failled")
-                # else:
-                tracker_provider.set_tracking_state(has_lock=data[2],
-                                                    x_pos=data[0],
-                                                    y_pos=data[1])
+                else:
+                    tracker_provider.set_tracking_state(has_lock=data[2],
+                                                        x_pos=data[0],
+                                                        y_pos=data[1])
 
     except KeyboardInterrupt:
         rospy.loginfo("[" + rospy.get_name() + "]:::exit on keyboard interrupt")

@@ -13,7 +13,7 @@ class QlinTrackerProvider:
         self.pub_tracking_state = rospy.Publisher(module_prefix + "tracking_state", TrackerStatus,
                                                   queue_size=1)
 
-    def set_tracking_state(self, has_lock, x_pos, y_pos, debug=True):
+    def set_tracking_state(self, has_lock, x_pos, y_pos, debug=False):
         if not has_lock and debug:
             rospy.logwarn("[" + rospy.get_name() + "]::[qlin_tracker]::Tracker lost lock")
         msg = TrackerStatus(has_lock=has_lock,
