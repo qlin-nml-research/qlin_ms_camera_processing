@@ -13,10 +13,8 @@ add_custom_target(${PROJECT_NAME}_OTHER_FILES ALL WORKING_DIRECTORY ${PROJECT_SO
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  sensor_msgs
-  geometry_msgs
   std_msgs
-  sas_conversions
+  message_generation
 )
 
 
@@ -47,6 +45,23 @@ catkin_python_setup()
 #   cfg/DynReconf2.cfg
 # )
 
+################################################
+## Declare ROS messages, services and actions ##
+################################################
+
+## Generate messages in the 'msg' folder
+add_message_files(
+  FILES
+  TrackerStatus.msg
+)
+
+## Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -60,9 +75,7 @@ catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
     rospy
-    sensor_msgs
     std_msgs
-    sas_conversions
   LIBRARIES qlin_ms_camera_processing
 )
 
