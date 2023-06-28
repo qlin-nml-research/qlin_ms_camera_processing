@@ -3,7 +3,7 @@ import cv2
 import os
 
 from inference_step.inference_realtime_dynamicROI import InferencerDROI
-from run_realtime_cv2 import realtime_main_cv2
+from run_stream_cv2 import realtime_stream_main_cv2
 
 cw_base_path = os.path.abspath(os.path.join(os.getcwd(), "..", ))
 vid_path = "E:/ExperimentData/MSCameraAutomation/microlens_original/mouse1-cropped.mp4"
@@ -28,9 +28,11 @@ if __name__ == '__main__':
         },
     }
 
-    realtime_main_cv2(
+    realtime_stream_main_cv2(
         inference_param=_inference_param,
         device_id=_device_id,
         show_img=_show_img,
         debug=_debug,
+        port=21039,
+        ip="10.198.113.138",
     )
