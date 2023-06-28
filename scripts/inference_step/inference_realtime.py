@@ -26,7 +26,7 @@ class Inferencer:
         self.preprocessing = get_preprocessing(preprocessing_fn)
 
     def process_frame(self, img_in):
-        tip_drill, frame_output, mask_output = predict_and_mark(
+        tip_drill, mask_output = predict_and_mark(
             in_frame=img_in,
             best_model=self.best_model,
             preprocessing=self.preprocessing,
@@ -35,6 +35,8 @@ class Inferencer:
             postive_treshold=self.inference_param['postive_detect_threshold'],
         )
         if self.show_img:
+            frame_output = img_in.copy()
+            cv2.circle(frame_output, (int(tip_drill[0]), int(tip_drill[1])), 5, (0, 0, 255), -1)
             cv2.imshow('image', frame_output)
             cv2.imshow('mask', mask_output / 255.0)
             cv2.waitKey(1)

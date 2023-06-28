@@ -66,13 +66,17 @@ class TrainingParameters:
     # image_quality = '4K_960_ver1'
     # network_img_size = [960, 544]
 
-    image_quality = '4K_1280_ver1'
-    network_img_size = [1280, 704]
+    image_quality = '4K_768_ver2'
+    network_img_size = [768, 768]
+
+    # image_quality = '4K_1280_ver1'
+    # network_img_size = [1280, 704]
 
     model = 'MSCamControlTip_model'
     original_video_quality = '4K'
     # Path
     dir_base_path = 'C:/Users/qlin1/Public Box/tmp_workspace/MS_camera_adaptive_cal'
+    dir_base_path = 'E:/ExperimentData/MSCameraAutomation'
 
     video_path = os.path.join(dir_base_path, "microlens_original")
     extracted_frames_path = os.path.join(dir_base_path, "workspace/extracted_frames/")
@@ -98,25 +102,19 @@ class TrainingParameters:
     frame_interval = 20
 
     # 1_rename
-    start_num = 0
-    total_image = 973
+    # start_num = 0
+    # total_image = 973
 
     # 2_make_labeled_image
     debug = True
     binary = False
     binary_threshold = 100
-
-    # resize_size_w = 256
-    margin = 70  # 100  #100
-    mask_specific_image = False
-    specific_image_num = 239
     mask_sigma = 400  # 800  #1500
-    slide = 40  # 40  #80
 
     # 3_augmentation
-    image_num_after_augmentation = 8000
-    original_num_for_train = 600
-    aug_num_for_train = 6000
+    image_num_after_augmentation = 14000
+    original_num_for_train = 1200
+    aug_num_for_train = 11000
     augmentation_preset = get_augmentation_preset()
 
     # Training

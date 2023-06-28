@@ -64,7 +64,7 @@ def run(
                 if ret:
                     start = time.time()
 
-                    tip_drill, frame_output, mask_output = predict_and_mark(
+                    tip_drill, mask_output = predict_and_mark(
                         in_frame=frame,
                         best_model=best_model,
                         preprocessing=preprocessing,
@@ -75,7 +75,9 @@ def run(
 
                     # if print_time:
                     # print(time.time() - start)
-
+                    frame_output = frame.copy()
+                    if tip_drill is not None:
+                        cv2.circle(frame_output, (int(tip_drill[0]), int(tip_drill[1])), 5, (0, 0, 255), -1)
                     if show_img:
                         cv2.imshow('image', frame_output)
                         cv2.imshow('mask', mask_output / 255.0)

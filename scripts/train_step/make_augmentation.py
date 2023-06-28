@@ -1,3 +1,4 @@
+import glob
 import os
 import random
 import cv2
@@ -5,12 +6,18 @@ from tqdm import tqdm
 import numpy as np
 from multiprocessing import Process
 from multiprocessing import Pool
+from itertools import repeat
+from functools import partial
 
 
-def aug_task(
-        k, original_num, augmentation_preset,
-        raw_resized_path, mask_resized_path, raw_augmented_path, mask_augmented_path,
-):
+def aug_task(k, additional_args):
+    original_num = additional_args['original_num']
+    augmentation_preset = additional_args['augmentation_preset']
+    raw_resized_path = additional_args['raw_resized_path']
+    mask_resized_path = additional_args['mask_resized_path']
+    raw_augmented_path = additional_args['raw_augmented_path']
+    mask_augmented_path = additional_args['mask_augmented_path']
+
     raw_original, mask_original = get_random_choice_images(raw_resized_path,
                                                            mask_resized_path,
                                                            original_num)
@@ -32,7 +39,9 @@ def run(
         image_num_after_augmentation=None,
         augmentation_preset=None,
 ):
-    original_num = int(len(os.listdir(json_and_raw_path)) / 2)
+    # original_num = int(len(os.listdir(json_and_raw_path)) / 2)
+    original_num = int(len(glob.glob1(raw_resized_path, "*.png")))
+
     # print(os.listdir(json_and_raw_path))
     # print(json_and_raw_path)
 
@@ -47,14 +56,14 @@ def run(
     print("Starting parallel augmentation: ")
     # pool = Pool(processes=30)
     with Pool(processes=30) as pool:
-        for k in range(0, augmentation_num + 1):
-            pool.apply_async(
-                aug_task, args=(
-                    k, original_num, augmentation_preset,
-                    raw_resized_path, mask_resized_path,
-                    raw_augmented_path, mask_augmented_path,
-                )
-            )
+        with tqdm(total=augmentation_num + 1) as progress_bar:
+            additional_args = {
+                "original_num": original_num, "augmentation_preset": augmentation_preset,
+                "raw_resized_path": raw_resized_path, "mask_resized_path": mask_resized_path,
+                "raw_augmented_path": raw_augmented_path, "mask_augmented_path": mask_augmented_path,
+            }
+            for result in pool.imap(partial(aug_task, additional_args=additional_args), range(0, augmentation_num + 1)):
+                progress_bar.update(1)
         pool.close()
         pool.join()
 

@@ -45,9 +45,15 @@ def run(
 
         input_json_path = os.path.join(json_and_raw_path, str(k) + '.json')
 
-        w, h, tip_xy = get_meta_data_from_json(input_json_path)
+        w, h, x_tip, y_tip = get_meta_data_from_json(input_json_path)
+        h_, w_, _ = image.shape
+        # check if json file is read correctly
+        if h is not None and w is not None:
+            assert h_ == h and w_ == w, "Expect dimension match"
+        else:
+            h = h_
+            w = w_
         resized_w, resized_h = tuple(network_img_size)
-        x_tip, y_tip = tip_xy
 
         #######################
         # resizing image
@@ -107,6 +113,8 @@ def get_gaussian_confidence_map(w, h, tip_x, tip_y, sigma):
 
 
 def get_meta_data_from_json(json_path):
+    if not os.path.isfile(json_path):
+        return None, None, None, None
     with open(json_path, "r", encoding="utf-8") as f:
         dj = json.load(f)
     w = dj['imageWidth']
@@ -123,4 +131,4 @@ def get_meta_data_from_json(json_path):
     else:
         tip_xy = (None, None)
 
-    return w, h, tip_xy
+    return w, h, *tip_xy
