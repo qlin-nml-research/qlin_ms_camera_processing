@@ -3,7 +3,8 @@
 import rospy
 from qlin_ms_camera_processing.msg import TrackerStatus
 
-module_name="qlin_tracker"
+module_name = "qlin_tracker"
+
 
 class QlinTrackerProvider:
     def __init__(self, module_prefix):

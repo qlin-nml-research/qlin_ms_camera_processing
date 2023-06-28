@@ -3,7 +3,7 @@
           name="tracker_reciever_node" required="true">
         <rosparam subst_value="true">
             port: 21039
-            ns_prefix: tracking_info
+            ns_prefix: tracking_info/
         </rosparam>
     </node>
 </launch>
