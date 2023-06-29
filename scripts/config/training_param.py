@@ -118,5 +118,5 @@ class TrainingParameters:
     augmentation_preset = get_augmentation_preset()
 
     # Training
-    epoch = 10
+    epoch = 30
     train_batch_size = 24

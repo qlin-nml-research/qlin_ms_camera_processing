@@ -75,34 +75,34 @@ if __name__ == '__main__':
     #     dataset_val_mask_path=train_param.dataset_val_mask_path,
     # )
     #
-    # train_network.run(
-    #     training_param={
-    #         "CLASSES": nn_param.CLASSES,
-    #         "ENCODER": nn_param.ENCODER,
-    #         "ENCODER_WEIGHTS": nn_param.ENCODER_WEIGHTS,
-    #         "ACTIVATION": nn_param.ACTIVATION,
-    #         "DEVICE": nn_param.DEVICE,
-    #         "batch_size": train_param.train_batch_size,
-    #         "epoch": train_param.epoch,
-    #     },
-    #     network_img_size=train_param.network_img_size,
-    #     dataset_path=train_param.dataset_path,
-    #     result_path=train_param.result_path,
-    # )
-    #
-    inference_on_vid_file.run(
-        video_dir=train_param.video_path,
-        video_list=['real_micro_teleop.mp4', 'mouse1-cropped.mp4', 'egg1-cropped.mp4'],
-        model_path=os.path.join(train_param.result_path, "best_model.pth"),
-        output_dir=os.path.join(train_param.result_path, 'video'),
-        network_img_size=train_param.network_img_size,
-        inference_param={
+    train_network.run(
+        training_param={
             "CLASSES": nn_param.CLASSES,
             "ENCODER": nn_param.ENCODER,
             "ENCODER_WEIGHTS": nn_param.ENCODER_WEIGHTS,
             "ACTIVATION": nn_param.ACTIVATION,
             "DEVICE": nn_param.DEVICE,
-            "postive_detect_threshold": 255.0/2
+            "batch_size": train_param.train_batch_size,
+            "epoch": train_param.epoch,
         },
-        print_time=False, show_img=False,
+        network_img_size=train_param.network_img_size,
+        dataset_path=train_param.dataset_path,
+        result_path=train_param.result_path,
     )
+    #
+    # inference_on_vid_file.run(
+    #     video_dir=train_param.video_path,
+    #     video_list=['real_micro_teleop.mp4', 'mouse1-cropped.mp4', 'egg1-cropped.mp4'],
+    #     model_path=os.path.join(train_param.result_path, "best_model.pth"),
+    #     output_dir=os.path.join(train_param.result_path, 'video'),
+    #     network_img_size=train_param.network_img_size,
+    #     inference_param={
+    #         "CLASSES": nn_param.CLASSES,
+    #         "ENCODER": nn_param.ENCODER,
+    #         "ENCODER_WEIGHTS": nn_param.ENCODER_WEIGHTS,
+    #         "ACTIVATION": nn_param.ACTIVATION,
+    #         "DEVICE": nn_param.DEVICE,
+    #         "postive_detect_threshold": 255.0/2
+    #     },
+    #     print_time=False, show_img=False,
+    # )
