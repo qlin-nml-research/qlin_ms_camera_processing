@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+import math
+
+import numpy as np
 import rospy
 import os, sys, time, datetime, traceback
 from qlin_ms_camera_processing import QlinTrackerProvider
@@ -6,7 +9,9 @@ from qlin_ms_camera_processing import QlinTrackerProvider
 from PyQt5.QtCore import QByteArray, qChecksum, QDataStream, QIODevice
 from PyQt5.QtNetwork import QUdpSocket, QHostAddress
 
-incoming_udp_format = [('x_pos', 'float', 1), ('y_pos', 'float', 1), ('has_lock', 'int', 1)]
+incoming_udp_format = [('pos', 'float', 2), ('has_lock', 'int', 1), ('focal_length', 'float', 2)]
+
+timed_out = 1.0  # sec
 
 
 def qlin_tracker_recevier_main(_name, _config):
@@ -29,8 +34,14 @@ def qlin_tracker_recevier_main(_name, _config):
         raise RuntimeError("UDP cannot open")
 
     try:
+        updated_time = rospy.get_time()
         while True:
+            if rospy.get_time() - updated_time > timed_out:
+                tracker_provider.reset_has_lock()
+
             if udp_recv_socket.hasPendingDatagrams():
+                updated_time = rospy.get_time()
+
                 datagram, host, port = udp_recv_socket.readDatagram(udp_recv_socket.pendingDatagramSize())
                 # logger.info(str(datagram))
                 data_buffer = QByteArray(datagram)
@@ -39,23 +50,25 @@ def qlin_tracker_recevier_main(_name, _config):
                 data_stream.setVersion(18)
                 data_stream.setByteOrder(QDataStream.BigEndian)
 
-                data = []
+                data = {}
                 for key, type, length in incoming_udp_format:
+                    tmp_data = []
                     for ind in range(length):
                         if type == 'int':
-                            data.append(data_stream.readUInt32())
+                            tmp_data.append(data_stream.readUInt32())
                         if type == 'float':
-                            data.append(data_stream.readFloat())
+                            tmp_data.append(data_stream.readFloat())
                         if type == 'bool':
-                            data.append(data_stream.readBool())
+                            tmp_data.append(data_stream.readBool())
+                    data[key] = tmp_data
                 crc_from_sender = data_stream.readUInt16()
 
                 if crc_from_sender != crc16:
                     rospy.loginfo("[" + rospy.get_name() + "]:::CRC Checksum Failled")
                 else:
-                    tracker_provider.set_tracking_state(has_lock=data[2],
-                                                        x_pos=data[0],
-                                                        y_pos=data[1])
+                    tracker_provider.set_tracking_state(has_lock=data['has_lock'][0],
+                                                        pos=data['pos'],
+                                                        f_length=data['focal_length'])
 
     except KeyboardInterrupt:
         rospy.loginfo("[" + rospy.get_name() + "]:::exit on keyboard interrupt")
