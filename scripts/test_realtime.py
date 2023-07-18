@@ -6,7 +6,7 @@ from inference_step.inference_realtime_dynamicROI import InferencerDROI
 from run_stream_cv2 import realtime_stream_main_cv2
 
 cw_base_path = os.path.abspath(os.path.join(os.getcwd(), "..", ))
-vid_path = "E:/ExperimentData/MSCameraAutomation/microlens_original/mouse1-cropped.mp4"
+vid_path = "E:/ExperimentData/MSCameraAutomation/microlens_original/7-5_constraints.mp4"
 # vid_path = "E:/ExperimentData/MSCameraAutomation/microlens_original/egg1-cropped.mp4"
 if __name__ == '__main__':
     _show_img = True
@@ -16,7 +16,8 @@ if __name__ == '__main__':
     _device_id = vid_path  # file
 
     _inference_param = {
-        "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
+        # "model_path": os.path.join(cw_base_path, "model", 'best_model_v2.pth'),
+        "model_path": os.path.join(cw_base_path, "model", 'best_model_v1.pth'),
         "network_img_size": [768, 768],
         "inference_param": {
             "CLASSES": ['drill_tip'],
