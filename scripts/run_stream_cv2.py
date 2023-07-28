@@ -39,7 +39,7 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
     output_dim = np.array([int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))])
 
     sensor_pos_coff = cam_param['sensor_cell_size'] * cam_param['native_resolution'] / output_dim
-    sensor_pos_coff = sensor_pos_coff / cam_param['focal_length']
+    # sensor_pos_coff = sensor_pos_coff / cam_param['focal_length']
     print(sensor_pos_coff)
     # print(output_dim)
 
@@ -59,7 +59,10 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
                 if tip_pos is not None:
                     tip_pos = -(tip_pos - output_dim / 2.0) * sensor_pos_coff
-
+                    # tip_pose
+                    """
+                    calculate from center of the sensor, (in meter) offset on the image plane 
+                    """
                     out_data.pos = tip_pos
                     out_data.focal_length = cam_param['focal_length']
                     out_data.has_lock = [True]
