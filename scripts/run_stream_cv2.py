@@ -58,10 +58,17 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                 tip_pos = inference_h.process_frame(frame_undistorted, debug=debug, show_img=show_img)
 
                 if tip_pos is not None:
-                    tip_pos = -(tip_pos - output_dim / 2.0) * sensor_pos_coff
+                    tip_pos = (tip_pos - output_dim / 2.0) * sensor_pos_coff
                     # tip_pose
                     """
                     calculate from center of the sensor, (in meter) offset on the image plane 
+                    [---------------------------]
+                    [                           ]
+                    [           Center          ]
+                    [             x --> +x      ] o--> view into the screen with optical center behind
+                    [             |             ]  tip projection on sensor
+                    [             v +y          ]
+                    [___________________________]
                     """
                     out_data.pos = tip_pos
                     out_data.focal_length = cam_param['focal_length']
