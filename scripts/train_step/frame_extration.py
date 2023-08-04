@@ -51,7 +51,7 @@ def run(
                 if i % frame_interval == 0:
                     frame_counter += 1
                     # OUTPUT IMAGE ABSOLUTE OR RELATIVE PATH
-                    output_image_path = os.path.join(output_frames_path, str(frame_counter+starting_number) + '.png')
+                    output_image_path = os.path.join(output_frames_path, str(frame_counter+starting_number-1) + '.png')
                     if not overwriting and os.path.isfile(output_image_path):
                         raise RuntimeError("Old frame will be overritten")
                     if rotate_by_90:

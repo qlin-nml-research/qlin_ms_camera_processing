@@ -113,10 +113,6 @@ class TrainingParameters:
 
     # 3_augmentation
     image_num_after_augmentation = 14000
-    original_num_for_train = 1200
-    aug_num_for_train = 11000
+    original_num_for_train = 1800
+    aug_num_for_train = 11700
     augmentation_preset = get_augmentation_preset()
-
-    # Training
-    epoch = 30
-    train_batch_size = 24

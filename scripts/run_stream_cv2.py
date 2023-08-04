@@ -15,6 +15,8 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+TARGET_DISPLAY_SIZE = [960, 540]
+
 
 class TransmitDataStruct:
     _fields = [('pos', 'float', 2), ('has_lock', 'int', 1), ('focal_length', 'float', 2)]
@@ -31,16 +33,20 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
     cap = cv2.VideoCapture(device_id)
 
+    # force mac resolution
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 8000)
+
     if cap.isOpened():
         print("device opened")
     else:
         raise RuntimeError("Capture device not opened")
 
     output_dim = np.array([int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))])
+    print("Current resolution", output_dim)
 
-    sensor_pos_coff = cam_param['sensor_cell_size'] * cam_param['native_resolution'] / output_dim
+    sensor_pos_coff = cam_param['sensor_cell_size'][0] * cam_param['native_resolution'][0] / output_dim
     # sensor_pos_coff = sensor_pos_coff / cam_param['focal_length']
-    print(sensor_pos_coff)
+    # print(sensor_pos_coff)
     # print(output_dim)
 
     out_data = TransmitDataStruct()
@@ -53,12 +59,15 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                                                   cam_param['intrinsic'],
                                                   cam_param['distort_coff'])
 
-                cv2.imshow("current", frame_undistorted)
+                cv2.imshow("current", cv2.resize(frame_undistorted, TARGET_DISPLAY_SIZE))
 
-                tip_pos = inference_h.process_frame(frame_undistorted, debug=debug, show_img=show_img)
+                tip_pos = inference_h.process_frame(frame_undistorted, debug=debug, show_img=show_img,
+                                                    show_img_size=TARGET_DISPLAY_SIZE)
+                print(tip_pos)
 
                 if tip_pos is not None:
                     tip_pos = (tip_pos - output_dim / 2.0) * sensor_pos_coff
+
                     # tip_pose
                     """
                     calculate from center of the sensor, (in meter) offset on the image plane 
@@ -71,13 +80,12 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                     [___________________________]
                     """
                     out_data.pos = tip_pos
-                    out_data.focal_length = cam_param['focal_length']
+                    out_data.focal_length = cam_param['focal_length'][0]
                     out_data.has_lock = [True]
                 else:
                     out_data.pos = [0, 0]
-                    out_data.focal_length = cam_param['focal_length']
+                    out_data.focal_length = cam_param['focal_length'][0]
                     out_data.has_lock = [False]
-                # print(tip_pos)
 
                 outArray = QByteArray()
                 outBuffer = QBuffer(outArray)
@@ -87,7 +95,6 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                 outStream.setByteOrder(QDataStream.BigEndian)
                 for key_, dtype_, length_ in out_data._fields:
                     seg = getattr(out_data, key_)
-                    print(key_, dtype_, length_, seg)
                     for ind in range(length_):
                         if dtype_ == 'int':
                             outStream.writeInt32(seg[ind])
@@ -131,12 +138,15 @@ if __name__ == '__main__':
         "native_resolution": sensor_res,
     }
 
-    _device_id = 4  # Mooonshot Master PC
+    # _device_id = 4  # Mooonshot Master PC
+    _device_id = 0  # Local PC
     # _device_id = vid_path  # file
 
     _inference_param = {
-        "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
-        "network_img_size": [768, 768],
+        "model_path": os.path.join(cw_base_path, "model", 'best_model_960.pth'),
+        # "model_path": os.path.join(cw_base_path, "model", 'best_model_v1.pth'),
+        "network_img_size": [960, 544],
+        # "network_img_size": [768, 768],
         "inference_param": {
             "CLASSES": ['drill_tip'],
             "ENCODER": "resnet18",

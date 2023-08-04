@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+
 class InferencerDROI:
     class ROIMode(Enum):
         MODE_1 = auto()  # x0.7 network w
@@ -53,7 +54,7 @@ class InferencerDROI:
         self.debug_roi = None
         self.roi_mode = self.ROIMode.MODE_FULL
 
-    def process_frame(self, frame_raw, debug=False, show_img=False):
+    def process_frame(self, frame_raw, debug=False, show_img=False, show_img_size=[960, 540]):
         h, w, c = frame_raw.shape
         if not self.initialized:
             self.debug_roi = ([0, 0], [w, h])
@@ -65,15 +66,16 @@ class InferencerDROI:
         if show_img:
             frame_labeled = frame_raw.copy()
             if tip_drill is not None:
-                cv2.circle(frame_labeled, (int(tip_drill[0]), int(tip_drill[1])), 5, (0, 0, 255), -1)
+                cv2.circle(frame_labeled, (int(tip_drill[0]), int(tip_drill[1])), 10, (0, 0, 255), -1)
             if debug:
                 cv2.rectangle(frame_labeled, self.debug_roi[0],
                               np.array(self.debug_roi[0]) + np.array(self.debug_roi[1]),
                               (0, 255, 0), 2)
 
-            cv2.imshow('label', frame_labeled)
-            cv2.imshow('mask', mask_output / 255.0)
+            cv2.imshow('label', cv2.resize(frame_labeled, show_img_size))
+            cv2.imshow('mask', cv2.resize(mask_output / 255.0, show_img_size))
             cv2.waitKey(1)
+
         return tip_drill
 
     def _increment_roi_mode(self):
@@ -98,8 +100,8 @@ class InferencerDROI:
 
     def _pad_mask(self, mask_in, crop_wh, crop_xy, target_wh):
         # h, w = mask_in.shape
-        return np.pad(mask_in, ((crop_xy[1],  target_wh[1] - crop_wh[1]-crop_xy[1]),
-                                (crop_xy[0], target_wh[0] - crop_wh[0]-crop_xy[0])))
+        return np.pad(mask_in, ((crop_xy[1], target_wh[1] - crop_wh[1] - crop_xy[1]),
+                                (crop_xy[0], target_wh[0] - crop_wh[0] - crop_xy[0])))
 
     def _run_predict(self, frame_raw, mask_output=None, expand_roi=False, debug=False):
         if expand_roi:
