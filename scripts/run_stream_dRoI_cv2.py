@@ -4,7 +4,7 @@ import os
 import numpy as np
 import scipy.io as scio
 
-from inference_step.inference_realtime import Inferencer
+from inference_step.inference_realtime_dynamicROI import InferencerDROI
 from PyQt5.QtNetwork import QUdpSocket, QHostAddress
 from PyQt5.QtCore import QByteArray, QLocale, qChecksum, QDataStream, QIODevice, QBuffer, QTime
 
@@ -27,7 +27,7 @@ class TransmitDataStruct:
 
 
 def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, debug, port, ip, **kwargs):
-    inference_h = Inferencer(**inference_param)
+    inference_h = InferencerDROI(**inference_param)
     udp_send_sock = QUdpSocket()
     udp_send_addr = QHostAddress(ip)
 

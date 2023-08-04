@@ -36,10 +36,11 @@ class InferencerDROI:
         else:
             return 10000
 
-    def __init__(self, model_path, network_img_size, inference_param):
+    def __init__(self, model_path, network_img_size, inference_param, show_img=False):
         self.model_path = model_path
         self.network_img_size = network_img_size
         self.inference_param = inference_param
+        self.show_img = show_img
 
         self.best_model = torch.load(model_path)
         logger.info("model loaded!")
