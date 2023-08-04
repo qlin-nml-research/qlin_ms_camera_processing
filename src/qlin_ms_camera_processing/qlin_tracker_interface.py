@@ -28,6 +28,9 @@ class QlinTrackerInterface:
         return True
 
     def get_has_lock(self):
+        if self.has_lock:
+            self.has_lock = False
+            return True
         return self.has_lock
 
     def get_pos(self):
