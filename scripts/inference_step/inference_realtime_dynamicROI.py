@@ -42,7 +42,7 @@ class InferencerDROI:
         self.inference_param = inference_param
         self.show_img = show_img
 
-        self.best_model = torch.load(model_path)
+        self.best_model = torch.load(model_path, map_location=torch.device(inference_param['DEVICE']))
         logger.info("model loaded!")
         ENCODER = inference_param['ENCODER']
         ENCODER_WEIGHTS = inference_param['ENCODER_WEIGHTS']
