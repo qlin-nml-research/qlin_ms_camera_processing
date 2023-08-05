@@ -38,11 +38,13 @@ def key_point_processing_main(inference_param, file_path):
     while vid_reader.isOpened():
         success, frame_raw = vid_reader.read()
         if not success:
-            raise RuntimeError("something went wrong")
+            # raise RuntimeError("something went wrong")
+            print("something went wrong, exiting....")
+            break
         else:
             ind += 1
 
-        tip_pos = inference_h.process_frame(frame_raw, debug=False, show_img=True,
+        tip_pos = inference_h.process_frame(frame_raw, debug=False, show_img=False,
                                             show_img_size=TARGET_DISPLAY_SIZE)
 
         frame = frame_raw.copy()
@@ -50,6 +52,8 @@ def key_point_processing_main(inference_param, file_path):
             tip_pos = np.round(tip_pos).astype(np.int32).tolist()
             print(ind, tip_pos)
             cv2.circle(frame, tip_pos, 20, (0, 0, 255), -1)
+            if ind >= len(reader_timestamps):
+                break
             keypoint_dict[ind] = [reader_timestamps[ind], (tip_pos[0], tip_pos[1])]
 
         cv2.imshow('Video', frame)
