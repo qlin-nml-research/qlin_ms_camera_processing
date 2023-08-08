@@ -56,7 +56,7 @@ def key_point_processing_main(inference_param, file_path):
                 break
             keypoint_dict[ind] = [reader_timestamps[ind], (tip_pos[0], tip_pos[1])]
 
-        cv2.imshow('Video', frame)
+        cv2.imshow('Video', cv2.resize(frame, TARGET_DISPLAY_SIZE))
 
         key = cv2.waitKey(2)
         if key == 27:  # Press 'Esc' to exit
@@ -78,7 +78,7 @@ def key_point_processing_main(inference_param, file_path):
 
 cw_base_path = os.path.abspath(os.path.join(os.getcwd(), "../..", ))
 if __name__ == '__main__':
-    dir_root = "/Users/quentinlin/Desktop/Moonshot/2023_08_04_experiment_recording"
+    dir_root = "E:/ExperimentData/MSCameraAutomation/8_4_experiment_recording"
     filename = "adapt_0804_exp1_vid_original"
     # filename = "adapt_lock_R1_0804_exp1_vid_original"
     # filename = "no_adapt_0804_exp1_vid_original"

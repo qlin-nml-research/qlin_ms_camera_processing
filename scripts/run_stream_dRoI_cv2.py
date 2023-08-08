@@ -40,7 +40,8 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
     cap = cv2.VideoCapture(device_id)
 
     # force mac resolution
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 8000)
+    if "target_w_resolution" in kwargs:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, kwargs['target_w_resolution'])
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     if cap.isOpened():
@@ -65,8 +66,10 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
         # stream.width = output_dim[0]
         # stream.height = output_dim[1]
         # stream.pix_fmt = 'yuv420p'
-
         original_f_time_writer = open(recording_path_ + "original_time.txt", 'w')
+    else:
+        original_img_recorder = None
+        original_f_time_writer = None
 
     out_data = TransmitDataStruct()
 
@@ -80,6 +83,9 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                                                   cam_param['distort_coff'])
 
                 frame_show = frame_undistorted.copy()
+                if enable_recording and original_img_recorder is not None:
+                    original_img_recorder.write(frame_show)
+                    original_f_time_writer.write('{:.6f}\n'.format(time.time() - frame_time_start))
 
                 tip_pos = inference_h.process_frame(frame_undistorted, debug=debug, show_img=show_img,
                                                     show_img_size=TARGET_DISPLAY_SIZE)
@@ -87,10 +93,6 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                 cv2.rectangle(frame_show, crop_space[0], crop_space[1],
                               (0, 255, 0), 2)
                 cv2.imshow("current", cv2.resize(frame_show, TARGET_DISPLAY_SIZE))
-
-                if enable_recording:
-                    original_img_recorder.write(frame_show)
-                    original_f_time_writer.write('{:.6f}\n'.format(time.time() - frame_time_start))
 
                 if tip_pos is not None:
                     tip_pos = (tip_pos - output_dim / 2.0) * sensor_pos_coff
@@ -191,9 +193,8 @@ if __name__ == '__main__':
 
     resolution = np.array([3840, 2160])
     crop_offset_scale = np.array([0.2, 0.15])
-    roi_start = (resolution*crop_offset_scale).astype(np.int32)
-    roi_end = (resolution*(1-crop_offset_scale)).astype(np.int32)
-
+    roi_start = (resolution * crop_offset_scale).astype(np.int32)
+    roi_end = (resolution * (1 - crop_offset_scale)).astype(np.int32)
 
     recording_path = os.path.join(recording_dir_path, "adapt_0804_exp1_vid_")
 
@@ -207,4 +208,6 @@ if __name__ == '__main__':
         ip="10.198.113.138",
         crop_space=[roi_start, roi_end],
         recording_path=recording_path,
+        target_w_resolution=1920,
+        # target_w_resolution=3840,
     )
