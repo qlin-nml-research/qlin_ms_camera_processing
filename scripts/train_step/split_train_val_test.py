@@ -22,8 +22,13 @@ def run(
         dataset_val_path=None,
         dataset_train_mask_path=None,
         dataset_test_mask_path=None,
-        dataset_val_mask_path=None
+        dataset_val_mask_path=None,
+        val_test_ratio=None,
 ):
+    # test to val ratio
+    if val_test_ratio is None:
+        val_test_ratio = 0.8
+
     original_img_list = glob.glob(os.path.join(raw_resized_path, "*png"))
     augmented_img_list = glob.glob(os.path.join(raw_augmented_path, "*png"))
     original_mask_list = [os.path.join(mask_resized_path, os.path.basename(entry)) for entry in original_img_list]
@@ -44,11 +49,11 @@ def run(
                                                               + " total augment: " + str(len(augmented_img_list)) \
                                                               + " train: " + str(aug_num_for_train)
 
-    original_num_for_test = int((len(original_img_list) - original_num_for_train) / 2)
-    original_num_for_val = len(original_img_list) - original_num_for_train - original_num_for_test
+    original_num_for_val = int((len(original_img_list) - original_num_for_train) * val_test_ratio)
+    original_num_for_test = len(original_img_list) - original_num_for_train - original_num_for_val
 
-    aug_num_for_test = int((len(augmented_img_list) - aug_num_for_train) / 2)
-    aug_num_for_val = len(augmented_img_list) - aug_num_for_train - aug_num_for_test
+    aug_num_for_val = int((len(augmented_img_list) - aug_num_for_train) * val_test_ratio)
+    aug_num_for_test = len(augmented_img_list) - aug_num_for_train - aug_num_for_val
 
     original_list = list(zip(original_img_list, original_mask_list))
     augmented_list = list(zip(augmented_img_list, augmented_mask_list))

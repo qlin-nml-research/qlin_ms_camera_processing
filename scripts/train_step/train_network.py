@@ -15,6 +15,7 @@ def run(
         training_param=None,
         network_img_size=None,
         dataset_path=None, result_path=None,
+        output_test_image=False,
 ):
     image_size = network_img_size
     CLASSES = training_param['CLASSES']
@@ -77,8 +78,9 @@ def run(
     train_dataset_vis = Dataset(x_train_dir, y_train_dir, image_size, classes=CLASSES)
     valid_dataset_vis = Dataset(x_valid_dir, y_valid_dir, image_size, classes=CLASSES)
 
-    # shutil.rmtree(result_path + 'process_image')
-    os.makedirs(os.path.join(result_path, 'process_image'), exist_ok=True)
+    if output_test_image:
+        # shutil.rmtree(result_path + 'process_image')
+        os.makedirs(os.path.join(result_path, 'process_image'), exist_ok=True)
 
     for i in range(0, training_param['epoch']):
         print('\nEpoch: {}'.format(i))
@@ -90,43 +92,45 @@ def run(
         valid_mse_loss.append(valid_logs['mse_loss'])
 
         torch.save(model, os.path.join(result_path, 'current.pth'))
-        current_model = torch.load(os.path.join(result_path, 'current.pth'))
 
-        n_train = np.random.choice(len(train_dataset))
-        n_valid = np.random.choice(len(valid_dataset))
+        if output_test_image:
+            current_model = torch.load(os.path.join(result_path, 'current.pth'))
 
-        image_train, mask_train = train_dataset[n_train]
-        image_vis_train = train_dataset_vis[n_train][0].astype('uint8')
-        mask_vis_train = train_dataset_vis[n_train][1]
+            n_train = np.random.choice(len(train_dataset))
+            n_valid = np.random.choice(len(valid_dataset))
 
-        cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-train' + '.png'),
-                    image_vis_train)
-        cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-train_mask' + '.png'),
-                    mask_vis_train[:, :, 0] * 255)
+            image_train, mask_train = train_dataset[n_train]
+            image_vis_train = train_dataset_vis[n_train][0].astype('uint8')
+            mask_vis_train = train_dataset_vis[n_train][1]
 
-        x_tensor = torch.from_numpy(image_train).to(DEVICE).unsqueeze(0)
-        pr_mask_train = current_model.predict(x_tensor)
-        pr_mask_train = (pr_mask_train.squeeze().cpu().numpy())
-        pr_mask_train = pr_mask_train * 255
-        pr_mask_train = np.transpose(pr_mask_train, (0, 1))
-        cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-train_predict' + '.png'),
-                    pr_mask_train)
+            cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-train' + '.png'),
+                        image_vis_train)
+            cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-train_mask' + '.png'),
+                        mask_vis_train[:, :, 0] * 255)
 
-        image_valid, mask_valid = valid_dataset[n_valid]
-        image_vis_valid = valid_dataset_vis[n_valid][0].astype('uint8')
-        mask_vis_valid = valid_dataset_vis[n_valid][1]
+            x_tensor = torch.from_numpy(image_train).to(DEVICE).unsqueeze(0)
+            pr_mask_train = current_model.predict(x_tensor)
+            pr_mask_train = (pr_mask_train.squeeze().cpu().numpy())
+            pr_mask_train = pr_mask_train * 255
+            pr_mask_train = np.transpose(pr_mask_train, (0, 1))
+            cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-train_predict' + '.png'),
+                        pr_mask_train)
 
-        cv2.imwrite(result_path + 'process_image/' + str(i + 1) + '-valid' + '.png', image_vis_valid)
-        cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-valid_mask' + '.png'),
-                    mask_vis_valid * 255)
+            image_valid, mask_valid = valid_dataset[n_valid]
+            image_vis_valid = valid_dataset_vis[n_valid][0].astype('uint8')
+            mask_vis_valid = valid_dataset_vis[n_valid][1]
 
-        x_tensor = torch.from_numpy(image_valid).to(DEVICE).unsqueeze(0)
-        pr_mask_valid = current_model.predict(x_tensor)
-        pr_mask_valid = (pr_mask_valid.squeeze().cpu().numpy())
-        pr_mask_valid = pr_mask_valid * 255
-        pr_mask_valid = np.transpose(pr_mask_valid, (0, 1))
-        cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-valid_predict' + '.png'),
-                    pr_mask_valid)
+            cv2.imwrite(result_path + 'process_image/' + str(i + 1) + '-valid' + '.png', image_vis_valid)
+            cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-valid_mask' + '.png'),
+                        mask_vis_valid * 255)
+
+            x_tensor = torch.from_numpy(image_valid).to(DEVICE).unsqueeze(0)
+            pr_mask_valid = current_model.predict(x_tensor)
+            pr_mask_valid = (pr_mask_valid.squeeze().cpu().numpy())
+            pr_mask_valid = pr_mask_valid * 255
+            pr_mask_valid = np.transpose(pr_mask_valid, (0, 1))
+            cv2.imwrite(os.path.join(result_path, 'process_image', str(i + 1) + '-valid_predict' + '.png'),
+                        pr_mask_valid)
 
         # do something (save model, change lr, etc.)
         if max_score > valid_logs['mse_loss']:
@@ -134,7 +138,10 @@ def run(
             torch.save(model, os.path.join(result_path, 'best_model.pth'))
             print('Model saved!')
 
-        if i == 30:
+        if i == 10:
+            optimizer.param_groups[0]['lr'] = 5e-4
+            print('Decrease decoder learning rate to 5e-4!')
+        if i == 20:
             optimizer.param_groups[0]['lr'] = 1e-5
             print('Decrease decoder learning rate to 1e-5!')
 

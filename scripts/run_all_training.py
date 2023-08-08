@@ -9,8 +9,7 @@ from train_step import frame_extration
 from train_step import re_locate_file
 from train_step import process_image_set
 from train_step import make_augmentation
-from train_step import split_train_validation_test
-from train_step import pre_training_relocate
+from train_step import split_train_val_test
 from train_step import train_network
 from inference_step import inference_on_vid_file
 
@@ -25,9 +24,9 @@ if __name__ == '__main__':
     #     frame_interval=5,
     #     video_path=train_param.video_path,
     #     # video_list=['real_micro_teleop.mp4', 'real_micro_traj.mp4'],
-    #     video_list=['retraining_recording_1.mov'],
+    #     video_list=['adapt_lock_R1_0804_exp1_vid_original.mp4'],
     #     output_frames_path=train_param.extracted_frames_path,
-    #     starting_number=1653,
+    #     starting_number=2095,
     #     overwriting=True,
     #     rotate_by_90=False,
     # )
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     #     augmentation_preset=train_param.augmentation_preset
     # )
 
-    # pre_training_relocate.run(
+    # split_train_val_test.run(
     #         # total_original_img=int(len(glob.glob1(train_param.raw_resized_path, "*.png"))),
     #         original_num_for_train=train_param.original_num_for_train,
     #         aug_num_for_train=train_param.aug_num_for_train,
@@ -73,6 +72,7 @@ if __name__ == '__main__':
     #         dataset_train_mask_path=train_param.dataset_train_mask_path,
     #         dataset_test_mask_path=train_param.dataset_test_mask_path,
     #         dataset_val_mask_path=train_param.dataset_val_mask_path,
+    #         val_test_ratio=0.9,
     # )
 
     train_network.run(
@@ -88,6 +88,7 @@ if __name__ == '__main__':
         network_img_size=train_param.network_img_size,
         dataset_path=train_param.dataset_path,
         result_path=train_param.result_path,
+        output_test_image=False,
     )
     #
     # inference_on_vid_file.run(

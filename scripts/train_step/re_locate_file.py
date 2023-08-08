@@ -1,7 +1,7 @@
 import os
 import shutil
 import glob
-
+from tqdm import tqdm
 
 def run(extracted_frames_path, json_and_raw_path):
     ids = glob.glob1(extracted_frames_path, "*.png")
@@ -12,8 +12,9 @@ def run(extracted_frames_path, json_and_raw_path):
 
     # image_number = len(os.listdir(parameters.json_and_raw_path))
 
-    for i, id in enumerate(ids):
-        shutil.copyfile(extracted_fps[i], os.path.join(json_and_raw_path, id))
+    for i, id in enumerate(tqdm(ids)):
+        # also include renumbering
+        shutil.copyfile(extracted_fps[i], os.path.join(json_and_raw_path, str(i+1)+".png"))
         if os.path.isfile(extracted_fps[i].replace(".png", ".json")):
             shutil.copyfile(extracted_fps[i].replace(".png", ".json"),
-                            os.path.join(json_and_raw_path, id.replace(".png", ".json")))
+                            os.path.join(json_and_raw_path, str(i+1)+".json"))
