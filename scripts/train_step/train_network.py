@@ -78,6 +78,7 @@ def run(
     train_dataset_vis = Dataset(x_train_dir, y_train_dir, image_size, classes=CLASSES)
     valid_dataset_vis = Dataset(x_valid_dir, y_valid_dir, image_size, classes=CLASSES)
 
+    os.makedirs(result_path, exist_ok=True)
     if output_test_image:
         # shutil.rmtree(result_path + 'process_image')
         os.makedirs(os.path.join(result_path, 'process_image'), exist_ok=True)
