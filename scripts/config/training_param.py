@@ -66,11 +66,11 @@ class TrainingParameters:
     # image_quality = '4K_960_ver1'
     # network_img_size = [960, 544]
 
-    image_quality = '4K_768_ver3'
-    network_img_size = [768, 768]
+    # image_quality = '4K_768_ver3'
+    # network_img_size = [768, 768]
 
-    # image_quality = '4K_1280_ver1'
-    # network_img_size = [1280, 704]
+    image_quality = '4K_576_ver3'
+    network_img_size = [576, 576]
 
     model = 'MSCamControlTip_model'
     original_video_quality = '4K'

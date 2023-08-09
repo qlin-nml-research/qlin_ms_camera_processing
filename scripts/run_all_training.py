@@ -35,7 +35,7 @@ if __name__ == '__main__':
     #     extracted_frames_path=train_param.extracted_frames_path,
     #     json_and_raw_path=train_param.json_and_raw_path
     # )
-    #
+    # 
     # process_image_set.run(
     #     json_and_raw_path=train_param.json_and_raw_path,
     #     raw_resized_path=train_param.raw_resized_path,
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     #     binary_threshold=train_param.binary_threshold,
     #     make_debug_img=False, debug_img_path=train_param.debug_path,
     # )
-    #
+    # 
     # make_augmentation.run(
     #     json_and_raw_path=train_param.json_and_raw_path,
     #     raw_resized_path=train_param.raw_resized_path,
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     #     image_num_after_augmentation=train_param.image_num_after_augmentation,
     #     augmentation_preset=train_param.augmentation_preset
     # )
-
+    # 
     # split_train_val_test.run(
     #         # total_original_img=int(len(glob.glob1(train_param.raw_resized_path, "*.png"))),
     #         original_num_for_train=train_param.original_num_for_train,
@@ -82,8 +82,9 @@ if __name__ == '__main__':
             "ENCODER_WEIGHTS": nn_param.ENCODER_WEIGHTS,
             "ACTIVATION": nn_param.ACTIVATION,
             "DEVICE": nn_param.DEVICE,
-            "batch_size": 24,
-            "epoch": 30,
+            "batch_size": 34,
+            "epoch": 60,
+            "learning_rate_stepping": 0.3
         },
         network_img_size=train_param.network_img_size,
         dataset_path=train_param.dataset_path,

@@ -138,12 +138,10 @@ def run(
             torch.save(model, os.path.join(result_path, 'best_model.pth'))
             print('Model saved!')
 
-        if i == 10:
-            optimizer.param_groups[0]['lr'] = 5e-4
-            print('Decrease decoder learning rate to 5e-4!')
-        if i == 20:
-            optimizer.param_groups[0]['lr'] = 1e-5
-            print('Decrease decoder learning rate to 1e-5!')
+        if i % 10 == 0 and i != 0:
+            optimizer.param_groups[0]['lr'] = \
+                optimizer.param_groups[0]['lr'] * training_param['learning_rate_stepping']
+            print(f'Decrease decoder learning rate to {optimizer.param_groups[0]["lr"]}!')
 
     fig = plt.figure(figsize=(7, 5))
     plt.plot(x_epoch_data, train_mse_loss, label='train')
