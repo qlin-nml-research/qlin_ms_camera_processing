@@ -1,5 +1,6 @@
 import os
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 import segmentation_models_pytorch as smp
 import segmentation_models_pytorch.utils as smp_utils
@@ -29,10 +30,11 @@ def run(
     x_valid_dir = os.path.join(dataset_path, 'val')
     y_valid_dir = os.path.join(dataset_path, 'val_mask')
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     if not torch.cuda.is_available():
         raise Exception("GPU not available. CPU training will be too slow.")
-    print("device name", torch.cuda.get_device_name(0))
+    for i in range(torch.cuda.device_count()):
+        print("device name", torch.cuda.get_device_name(i))
 
     # build model
     model = smp.Unet(
@@ -42,6 +44,12 @@ def run(
         classes=len(CLASSES),
         activation=ACTIVATION
     )
+    # Wrap the model for multi-GPU training
+    print("Using", torch.cuda.device_count(), "GPUs!")
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
+        model = model.cuda()
+
 
     # data normalization function
     preprocessing_fn = smp.encoders.get_preprocessing_fn(ENCODER, ENCODER_WEIGHTS)
