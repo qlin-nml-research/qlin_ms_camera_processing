@@ -1,6 +1,6 @@
-import torch
-import numpy as np
 import cv2
+import numpy as np
+import torch
 
 
 def predict_and_mark(in_frame, best_model, preprocessing, model_dev, network_img_size, postive_treshold):

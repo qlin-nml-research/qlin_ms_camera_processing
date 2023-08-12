@@ -1,15 +1,14 @@
-import cv2
+import logging
 import os
+import time
 
+import cv2
 import numpy as np
 import scipy.io as scio
+from PyQt5.QtCore import QByteArray, qChecksum, QDataStream, QIODevice, QBuffer
+from PyQt5.QtNetwork import QUdpSocket, QHostAddress
 
 from inference_step.inference_realtime import Inferencer
-from PyQt5.QtNetwork import QUdpSocket, QHostAddress
-from PyQt5.QtCore import QByteArray, QLocale, qChecksum, QDataStream, QIODevice, QBuffer, QTime
-
-import time
-import logging
 
 # logger init
 logging.basicConfig()
@@ -41,7 +40,8 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
     # force mac resolution
     if "target_w_resolution" in kwargs:
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, kwargs['target_w_resolution'])
+        print("attempt to set resolution")
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(kwargs['target_w_resolution']))
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     if cap.isOpened():
@@ -51,6 +51,11 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
     output_dim = np.array([int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))])
     print("Current resolution", output_dim)
+
+    newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam_param['intrinsic'], cam_param['distort_coff'],
+                                                      tuple(output_dim), 1)
+    mapx, mapy = cv2.initUndistortRectifyMap(cam_param['intrinsic'], cam_param['distort_coff'], None, newcameramtx,
+                                             tuple(output_dim), 5)
 
     sensor_pos_coff = cam_param['sensor_cell_size'][0] * cam_param['native_resolution'][0] / output_dim
     # sensor_pos_coff = sensor_pos_coff / cam_param['focal_length']
@@ -74,14 +79,14 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
     out_data = TransmitDataStruct()
 
     try:
+        print("entering loop")
         frame_time_start = time.time()
         while True:
             ret, frame = cap.read()
             if ret:
-                frame_undistorted = cv2.undistort(frame,
-                                                  cam_param['intrinsic'],
-                                                  cam_param['distort_coff'])
+                frame_undistorted = cv2.remap(frame, mapx, mapy, cv2.INTER_LINEAR)
 
+                # frame_undistorted = frame.copy()
                 frame_show = frame_undistorted.copy()
                 if enable_recording and original_img_recorder is not None:
                     original_img_recorder.write(frame_show)
@@ -148,7 +153,8 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
     cap.release()
 
 
-recording_dir_path = "E:/ExperimentData/MSCameraAutomation/experiment_recording"
+# recording_dir_path = "E:/ExperimentData/MSCameraAutomation/experiment_recording"
+recording_dir_path = "/home/nml/Desktop/recording"
 cw_base_path = os.path.abspath(os.path.join(os.getcwd(), "..", ))
 if __name__ == '__main__':
     _show_img = True
@@ -178,15 +184,17 @@ if __name__ == '__main__':
 
     _inference_param = {
         # "model_path": os.path.join(cw_base_path, "model", 'best_model_960.pth'),
-        "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
+        # "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
+        "model_path": os.path.join(cw_base_path, "model", 'best_model_576.pth'),
         # "network_img_size": [960, 544],
-        "network_img_size": [768, 768],
+        # "network_img_size": [768, 768],
+        "network_img_size": [576, 576],
         "inference_param": {
             "CLASSES": ['drill_tip'],
             "ENCODER": "resnet18",
             "ENCODER_WEIGHTS": "imagenet",
             "ACTIVATION": "sigmoid",
-            "DEVICE": "cuda",
+            "DEVICE": "cuda:0",
             "postive_detect_threshold": 70
         },
     }
@@ -196,7 +204,7 @@ if __name__ == '__main__':
     roi_start = (resolution * crop_offset_scale).astype(np.int32)
     roi_end = (resolution * (1 - crop_offset_scale)).astype(np.int32)
 
-    recording_path = os.path.join(recording_dir_path, "adapt_0804_exp1_vid_")
+    recording_path = os.path.join(recording_dir_path, "adapt_0812_exp1_vid_")
 
     realtime_stream_main_cv2(
         inference_param=_inference_param,
@@ -205,9 +213,9 @@ if __name__ == '__main__':
         show_img=_show_img,
         debug=_debug,
         port=21039,
-        ip="10.198.113.138",
+        ip="10.198.113.101",
         crop_space=[roi_start, roi_end],
-        recording_path=recording_path,
+        # recording_path=recording_path,
         target_w_resolution=1920,
         # target_w_resolution=3840,
     )
