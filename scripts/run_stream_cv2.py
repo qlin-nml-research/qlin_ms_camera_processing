@@ -101,7 +101,7 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
                 if tip_pos is not None:
                     tip_pos = (tip_pos - output_dim / 2.0) * sensor_pos_coff
-                    print(tip_pos)
+                    # print(tip_pos)
                     # tip_pose
                     """
                     calculate from center of the sensor, (in meter) offset on the image plane 
@@ -155,6 +155,7 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
 # recording_dir_path = "E:/ExperimentData/MSCameraAutomation/experiment_recording"
 recording_dir_path = "/home/nml/Desktop/recording"
+recording_dir_path = "D:/ComputerHome/Videos/qlin"
 cw_base_path = os.path.abspath(os.path.join(os.getcwd(), "..", ))
 if __name__ == '__main__':
     _show_img = True
@@ -178,8 +179,8 @@ if __name__ == '__main__':
         "native_resolution": sensor_res,
     }
 
-    # _device_id = 4  # Mooonshot Master PC
-    _device_id = 0  # Local PC
+    _device_id = 2 # Mooonshot Master PC
+    # _device_id = 0  # Local PC
     # _device_id = vid_path  # file
 
     _inference_param = {
@@ -199,12 +200,13 @@ if __name__ == '__main__':
         },
     }
 
-    resolution = np.array([3840, 2160])
+    # resolution = np.array([3840, 2160])
+    resolution = np.array([1920, 1080])
     crop_offset_scale = np.array([0.2, 0.15])
     roi_start = (resolution * crop_offset_scale).astype(np.int32)
     roi_end = (resolution * (1 - crop_offset_scale)).astype(np.int32)
 
-    recording_path = os.path.join(recording_dir_path, "adapt_0812_exp1_vid_")
+    recording_path = os.path.join(recording_dir_path, "no_adapt_0812_exp1_vid_")
 
     realtime_stream_main_cv2(
         inference_param=_inference_param,
@@ -213,7 +215,7 @@ if __name__ == '__main__':
         show_img=_show_img,
         debug=_debug,
         port=21039,
-        ip="10.198.113.101",
+        ip="10.198.113.138",
         crop_space=[roi_start, roi_end],
         # recording_path=recording_path,
         target_w_resolution=1920,

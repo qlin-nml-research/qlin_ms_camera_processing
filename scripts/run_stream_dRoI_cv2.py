@@ -180,11 +180,11 @@ if __name__ == '__main__':
 
     _inference_param = {
         # "model_path": os.path.join(cw_base_path, "model", 'best_model_960.pth'),
-        "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
-        # "model_path": os.path.join(cw_base_path, "model", 'best_model_576.pth'),
+        # "model_path": os.path.join(cw_base_path, "model", 'best_model.pth'),
+        "model_path": os.path.join(cw_base_path, "model", 'best_model_576.pth'),
         # "network_img_size": [960, 544],
-        "network_img_size": [768, 768],
-        # "network_img_size": [576, 576],
+        # "network_img_size": [768, 768],
+        "network_img_size": [576, 576],
         "inference_param": {
             "CLASSES": ['drill_tip'],
             "ENCODER": "resnet18",
@@ -209,7 +209,7 @@ if __name__ == '__main__':
         show_img=_show_img,
         debug=_debug,
         port=21039,
-        ip="10.198.113.101",
+        ip="10.198.113.138",
         crop_space=[roi_start, roi_end],
         # recording_path=recording_path,
         target_w_resolution=1920,
