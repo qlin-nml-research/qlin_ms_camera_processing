@@ -9,6 +9,7 @@ from PyQt5.QtCore import QByteArray, qChecksum, QDataStream, QIODevice, QBuffer
 from PyQt5.QtNetwork import QUdpSocket, QHostAddress
 
 from inference_step.inference_realtime_dynamicROI import InferencerDROI
+from inference_step.stream_info_display import StreamInfoUI
 
 # logger init
 logging.basicConfig()
@@ -26,7 +27,8 @@ class TransmitDataStruct:
             setattr(self, name_, np.zeros(len_))
 
 
-def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, debug, port, ip, crop_space, **kwargs):
+def realtime_stream_main_cv2_droi(inference_param, cam_param, device_id, port, ip,
+                                  crop_scale, show_img=True, debug=False, info_ui=None, **kwargs):
     inference_h = InferencerDROI(**inference_param)
     udp_send_sock = QUdpSocket()
     udp_send_addr = QHostAddress(ip)
@@ -40,7 +42,8 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
 
     # force mac resolution
     if "target_w_resolution" in kwargs:
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, kwargs['target_w_resolution'])
+        print("attempt to set resolution")
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(kwargs['target_w_resolution']))
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     if cap.isOpened():
@@ -51,15 +54,27 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
     output_dim = np.array([int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))])
     print("Current resolution", output_dim)
 
+    # get cropping ROI setting
+    roi_start = (output_dim * crop_scale).astype(np.int32)
+    roi_end = (output_dim * (1 - crop_scale)).astype(np.int32)
+
+    # camera undistort
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam_param['intrinsic'], cam_param['distort_coff'],
                                                       tuple(output_dim), 1)
-    mapx, mapy = cv2.initUndistortRectifyMap(cam_param['intrinsic'], cam_param['distort_coff'],
-                                             None, newcameramtx, tuple(output_dim), 5)
+    mapx, mapy = cv2.initUndistortRectifyMap(cam_param['intrinsic'], cam_param['distort_coff'], None, newcameramtx,
+                                             tuple(output_dim), 5)
 
     sensor_pos_coff = cam_param['sensor_cell_size'][0] * cam_param['native_resolution'][0] / output_dim
     # sensor_pos_coff = sensor_pos_coff / cam_param['focal_length']
     # print(sensor_pos_coff)
     # print(output_dim)
+
+    # ui process
+    if info_ui is not None:
+        fps_queue = info_ui.get_fps_queue()
+        info_ui.start()
+    else:
+        fps_queue = None
 
     if enable_recording:
         print("recording at :", recording_path_ + "original.mp4")
@@ -78,12 +93,15 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
     out_data = TransmitDataStruct()
 
     try:
+        print("entering loop")
         frame_time_start = time.time()
+        fps_s_time = frame_time_start
         while True:
             ret, frame = cap.read()
             if ret:
                 frame_undistorted = cv2.remap(frame, mapx, mapy, cv2.INTER_LINEAR)
 
+                # frame_undistorted = frame.copy()
                 frame_show = frame_undistorted.copy()
                 if enable_recording and original_img_recorder is not None:
                     original_img_recorder.write(frame_show)
@@ -92,13 +110,13 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                 tip_pos = inference_h.process_frame(frame_undistorted, debug=debug, show_img=show_img,
                                                     show_img_size=TARGET_DISPLAY_SIZE)
 
-                cv2.rectangle(frame_show, crop_space[0], crop_space[1],
+                cv2.rectangle(frame_show, roi_start, roi_end,
                               (0, 255, 0), 2)
                 cv2.imshow("current", cv2.resize(frame_show, TARGET_DISPLAY_SIZE))
 
                 if tip_pos is not None:
                     tip_pos = (tip_pos - output_dim / 2.0) * sensor_pos_coff
-                    print(tip_pos)
+                    # print(tip_pos)
                     # tip_pose
                     """
                     calculate from center of the sensor, (in meter) offset on the image plane 
@@ -138,22 +156,37 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, show_img, de
                 if ret < 0:
                     logger.error("::UDP send failure..")
 
+                if info_ui is not None:
+                    time_now = time.time()
+                    fps = 1.0 / (time_now - fps_s_time)
+                    fps_s_time = time_now
+                    fps_queue.put(fps)
+
             else:
                 break
     except KeyboardInterrupt:
         print("Exit on Interrupt")
-        # Flush stream
+        if info_ui is not None:
+            info_ui.exit()
+    # Flush stream
 
     if enable_recording:
         original_img_recorder.release()
         original_f_time_writer.close()
     cap.release()
 
+    if info_ui is not None:
+        info_ui.join(timeout=1)
 
-recording_dir_path = "E:/ExperimentData/MSCameraAutomation/experiment_recording"
+    print("All process joined")
+
+
+recording_dir_path = "E:/ExperimentData/MSCameraAutomation"
+# recording_dir_path = "/home/nml/Desktop/recording"
+# recording_dir_path = "D:/ComputerHome/Videos/qlin"
 cw_base_path = os.path.abspath(os.path.join(os.getcwd(), "..", ))
 if __name__ == '__main__':
-    _show_img = False
+    _show_img = True
     _debug = False
     cam_mat_file_path = "../config/cv2_correction_param.mat"
     cam_data = scio.loadmat(cam_mat_file_path)
@@ -174,7 +207,7 @@ if __name__ == '__main__':
         "native_resolution": sensor_res,
     }
 
-    # _device_id = 4  # Mooonshot Master PC
+    # _device_id = 2  # Mooonshot Master PC
     _device_id = 0  # Local PC
     # _device_id = vid_path  # file
 
@@ -190,19 +223,24 @@ if __name__ == '__main__':
             "ENCODER": "resnet18",
             "ENCODER_WEIGHTS": "imagenet",
             "ACTIVATION": "sigmoid",
-            "DEVICE": "cuda",
+            "DEVICE": "cuda:0",
             "postive_detect_threshold": 70
         },
     }
 
-    resolution = np.array([3840, 2160])
     crop_offset_scale = np.array([0.2, 0.15])
-    roi_start = (resolution * crop_offset_scale).astype(np.int32)
-    roi_end = (resolution * (1 - crop_offset_scale)).astype(np.int32)
 
-    recording_path = os.path.join(recording_dir_path, "adapt_0804_exp1_vid_")
+    # start UI
+    info_ui_h = StreamInfoUI()
 
-    realtime_stream_main_cv2(
+    recording_dir_path = os.path.join(recording_dir_path, "experiment_recording")
+    os.makedirs(recording_dir_path, exist_ok=True)
+    recording_path = os.path.join(recording_dir_path, "no_adapt_0812_exp1_vid_")
+    # recording_path = os.path.join(recording_dir_path, "adapt_0812_exp1_vid_")
+    # recording_path = os.path.join(recording_dir_path, "adapt_lock_R1_0812_exp1_vid_")
+    # recording_path = os.path.join(recording_dir_path, "teleop_0812_exp1_vid_")
+
+    realtime_stream_main_cv2_droi(
         inference_param=_inference_param,
         cam_param=cam_param_,
         device_id=_device_id,
@@ -210,7 +248,8 @@ if __name__ == '__main__':
         debug=_debug,
         port=21039,
         ip="10.198.113.138",
-        crop_space=[roi_start, roi_end],
+        crop_scale=crop_offset_scale,
+        info_ui=info_ui_h,
         # recording_path=recording_path,
         target_w_resolution=1920,
         # target_w_resolution=3840,
