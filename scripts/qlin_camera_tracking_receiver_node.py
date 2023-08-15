@@ -12,11 +12,11 @@ from PyQt5.QtNetwork import QUdpSocket, QHostAddress
 incoming_udp_format = [('pos', 'float', 2), ('has_lock', 'int', 1), ('focal_length', 'float', 2)]
 
 timed_out = 1.0  # sec
+rate_limit = 1000
 
 
 def qlin_tracker_recevier_main(_name, _config):
     rospy.logwarn("[" + rospy.get_name() + "]::Running")
-
     tracker_provider = QlinTrackerProvider(_config['ns_prefix'])
 
     udp_recv_socket = QUdpSocket()
@@ -35,9 +35,12 @@ def qlin_tracker_recevier_main(_name, _config):
 
     try:
         updated_time = rospy.get_time()
+        rate = rospy.Rate(rate_limit)
         while True:
             if rospy.get_time() - updated_time > timed_out:
                 tracker_provider.reset_has_lock()
+                updated_time = rospy.get_time()
+
 
             if udp_recv_socket.hasPendingDatagrams():
                 updated_time = rospy.get_time()
@@ -70,6 +73,7 @@ def qlin_tracker_recevier_main(_name, _config):
                                                         pos=data['pos'],
                                                         f_length=data['focal_length'])
 
+            rate.sleep()
     except KeyboardInterrupt:
         rospy.loginfo("[" + rospy.get_name() + "]:::exit on keyboard interrupt")
 
