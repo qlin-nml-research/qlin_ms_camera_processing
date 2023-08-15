@@ -235,8 +235,8 @@ if __name__ == '__main__':
 
     recording_dir_path = os.path.join(recording_dir_path, "experiment_recording")
     os.makedirs(recording_dir_path, exist_ok=True)
-    recording_path = os.path.join(recording_dir_path, "no_adapt_0812_exp1_vid_")
-    # recording_path = os.path.join(recording_dir_path, "adapt_0812_exp1_vid_")
+    # recording_path = os.path.join(recording_dir_path, "no_adapt_0812_exp1_vid_")
+    recording_path = os.path.join(recording_dir_path, "adapt_0815_exp1_vid_")
     # recording_path = os.path.join(recording_dir_path, "adapt_lock_R1_0812_exp1_vid_")
     # recording_path = os.path.join(recording_dir_path, "teleop_0812_exp1_vid_")
 
@@ -250,7 +250,7 @@ if __name__ == '__main__':
         ip="10.198.113.138",
         crop_scale=crop_offset_scale,
         info_ui=info_ui_h,
-        # recording_path=recording_path,
+        recording_path=recording_path,
         target_w_resolution=1920,
         # target_w_resolution=3840,
     )
