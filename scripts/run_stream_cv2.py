@@ -64,10 +64,12 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, port, ip,
     mapx, mapy = cv2.initUndistortRectifyMap(cam_param['intrinsic'], cam_param['distort_coff'], None, newcameramtx,
                                              tuple(output_dim), 5)
 
-    sensor_pos_coff = cam_param['sensor_cell_size'][0] * cam_param['native_resolution'][0] / output_dim
-    # sensor_pos_coff = sensor_pos_coff / cam_param['focal_length']
-    # print(sensor_pos_coff)
-    # print(output_dim)
+    intrinsic_inv = np.linalg.pinv(cam_param['intrinsic'])
+    resolution_scaling_factor = cam_param['native_resolution'][0] / output_dim
+    # sensor_scaling_factor = cam_param['sensor_cell_size'][0] * resolution_scaling_factor
+    c_xy = np.array([cam_param['intrinsic'][0, 2], cam_param['intrinsic'][1, 2]]) / resolution_scaling_factor
+    f_xy = np.array([cam_param['intrinsic'][0, 0], cam_param['intrinsic'][1, 1]]) / resolution_scaling_factor
+    focal_mean = np.mean(cam_param['focal_length'])
 
     # ui process
     if info_ui is not None:
@@ -100,11 +102,11 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, port, ip,
             ret, frame = cap.read()
             if ret:
                 frame_undistorted = cv2.remap(frame, mapx, mapy, cv2.INTER_LINEAR)
-
                 # frame_undistorted = frame.copy()
                 frame_show = frame_undistorted.copy()
+                frame_time = time.time()
                 if enable_recording and original_img_recorder is not None:
-                    original_img_recorder.write(frame_show)
+                    original_img_recorder.write(frame_undistorted)
                     original_f_time_writer.write('{:.6f}\n'.format(time.time() - frame_time_start))
 
                 tip_pos = inference_h.process_frame(frame_undistorted, debug=debug, show_img=show_img,
@@ -115,9 +117,10 @@ def realtime_stream_main_cv2(inference_param, cam_param, device_id, port, ip,
                 cv2.imshow("current", cv2.resize(frame_show, TARGET_DISPLAY_SIZE))
 
                 if tip_pos is not None:
-                    tip_pos = (tip_pos - output_dim / 2.0) * sensor_pos_coff
-                    # print(tip_pos)
-                    # tip_pose
+                    undistorted_pos = intrinsic_inv @ np.concatenate([tip_pos * resolution_scaling_factor,
+                                                                      [1]])
+                    tip_pos = undistorted_pos[0:2] * focal_mean
+                    #  focal mean to scale to meter (mostly to comply with existing receiver end)
                     """
                     calculate from center of the sensor, (in meter) offset on the image plane 
                     [---------------------------]
